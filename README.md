@@ -1,1 +1,1 @@
-# glamda
+# Ghost Lambda
