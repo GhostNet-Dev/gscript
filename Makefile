@@ -1,17 +1,8 @@
-BINARY_CONTAINER_NAME	:= ghostnet
-BINARY_DEAMON_NAME	:= ghostd
-BINARY_CLI_NAME	:= ghost
-BINARY_DUM_NAME	:= dummy
+BINARY_CLI_NAME	:= glambda
 
-APP_BIN_CONTAINER_PATH := $(CURDIR)/bin/$(BINARY_CONTAINER_NAME)
-APP_BIN_DEAMON_PATH := $(CURDIR)/bin/$(BINARY_DEAMON_NAME)
 APP_BIN_CLI_PATH := $(CURDIR)/bin/$(BINARY_CLI_NAME)
-APP_BIN_DUM_PATH := $(CURDIR)/bin/$(BINARY_DUM_NAME)
 
-APP_DUM_SRC_PATH := $(CURDIR)/cmd/dummy
 APP_CLI_SRC_PATH := $(CURDIR)/cmd/cli
-APP_DEAMON_SRC_PATH := $(CURDIR)/cmd/ghostd
-APP_CONTAINER_SRC_PATH := $(CURDIR)/cmd/container
 
 ifneq ($(OS),Windows_NT)
 UNAME_S := $(shell uname -s)
@@ -21,42 +12,7 @@ run:
 	go run $(APP_CONTAINER_SRC_PATH)/main.go
 
 
-compile:
-	echo "Compiling for every OS and Platform"
-	GOOS=linux GOARCH=arm go build -o bin/main-linux-arm main.go
-	GOOS=linux GOARCH=arm64 go build -o bin/main-linux-arm64 main.go
-	GOOS=freebsd GOARCH=386 go build -o bin/main-freebsd-386 main.go
-
-all: cli ghostd container dum
-
-dum:
-ifeq ($(OS),Windows_NT)
-	set GOARCH=amd64& set GOOS=windows& go build -o $(APP_BIN_DUM_PATH).exe ${APP_DUM_SRC_PATH}/main.go
-else
-    ifeq ($(UNAME_S),Linux)
-	GOARCH=amd64 GOOS=linux go build -o $(APP_BIN_DUM_PATH) ${APP_DUM_SRC_PATH}/main.go
-    endif
-endif
-
-
-ghostd:
-ifeq ($(OS),Windows_NT)
-	set GOARCH=amd64& set GOOS=windows& go build -o $(APP_BIN_DEAMON_PATH).exe ${APP_DEAMON_SRC_PATH}/main.go
-else
-    ifeq ($(UNAME_S),Linux)
-	GOARCH=amd64 GOOS=linux go build -o $(APP_BIN_DEAMON_PATH) ${APP_DEAMON_SRC_PATH}/main.go
-    endif
-endif
-
-
-container:
-ifeq ($(OS),Windows_NT)
-	set GOARCH=amd64& set GOOS=windows& go build -o $(APP_BIN_CONTAINER_PATH).exe ${APP_CONTAINER_SRC_PATH}/main.go
-else
-    ifeq ($(UNAME_S),Linux)
-	GOARCH=amd64 GOOS=linux go build -o $(APP_BIN_CONTAINER_PATH) ${APP_CONTAINER_SRC_PATH}/main.go
-    endif
-endif
+all: cli
 
 cli:
 ifeq ($(OS),Windows_NT)
@@ -68,20 +24,20 @@ else
 endif
 
 runs:
-	./${APP_BIN_CONTAINER_PATH}
+	./${APP_BIN_CLI_PATH}
 
 build_and_run: build run
 
 clean:
 	go clean
 ifeq ($(OS),Windows_NT)
-	rm ${APP_BIN_CONTAINER_PATH}-windows
+	rm ${APP_BIN_CLI_PATH}-windows
 else
     ifeq ($(UNAME_S),Linux)
-		rm ${APP_BIN_CONTAINER_PATH}-linux
+		rm ${APP_BIN_CLI_PATH}-linux
     endif
     ifeq ($(UNAME_S),Darwin)
-		rm ${APP_BIN_CONTAINER_PATH}-darwin
+		rm ${APP_BIN_CLI_PATH}-darwin
     endif
 endif
 

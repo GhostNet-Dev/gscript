@@ -2,43 +2,41 @@ package commands
 
 import (
 	"fmt"
+	"os"
+	"os/user"
 	"strings"
 
 	"github.com/GhostNet-Dev/glambda/internal/gconfig"
+	"github.com/GhostNet-Dev/glambda/repl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
 var (
-	ghostDeamonName = "ghostd"
-	port            string
-	host            string
-	username        string
-	password        string
-	id              uint32
-	rpcPort         string
-	timeout         uint32
-	defaultCfg      = gconfig.NewDefaultConfig()
+	defaultCfg = gconfig.NewDefaultConfig()
 )
 
 // RootCmd root command binding
 func NewRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "ghost",
-		Short: "terminal in GhostNet",
+		Use:   "glambda",
+		Short: "PERL (read, Eval, Print, Loop)",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
 			return initializeConfig(cmd)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			// Working with OutOrStdout/OutOrStderr allows us to unit test our command easier
+			user, err := user.Current()
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("Hello %s! This is the Ghost Lambda Language!\n", user.Username)
+			fmt.Printf("Feel free to type in commands\n")
+			repl.Start(os.Stdin, os.Stdout)
 		},
 	}
-	cmd.Flags().StringVarP(&host, "ip", "i", "", "Host Address")
-	cmd.Flags().StringVarP(&port, "port", "", "50129", "Port Number")
-	cmd.Flags().StringVarP(&username, "username", "u", "", "Ghost Account Nickname")
-	cmd.Flags().StringVarP(&password, "password", "p", "", "Ghost Account Password")
 
 	return cmd
 }
