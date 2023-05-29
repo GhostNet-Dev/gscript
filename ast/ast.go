@@ -1,19 +1,19 @@
 package ast
 
-import "github.com/GhostNet-Dev/glambda/gtoken"
+import (
+	"bytes"
+
+	"github.com/GhostNet-Dev/glambda/gtoken"
+)
 
 type Node interface {
 	TokenLiteral() string
+	String() string
 }
 
 type Statement interface {
 	Node
 	statementNode()
-}
-
-type Expression interface {
-	Node
-	expressionNode()
 }
 
 type Program struct {
@@ -27,19 +27,61 @@ func (p *Program) TokenLiteral() string {
 	return ""
 }
 
+func (p *Program) String() string {
+	var out bytes.Buffer
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+	}
+	return out.String()
+}
+
 type LetStatement struct {
 	Token gtoken.Token
 	Name  *Identifier
 	Value Expression
 }
 
-func (ls *LetStatement) statementNode()       {}
-func (ls *LetStatement) TokenLiteral() string { return ls.Token.Literal }
-
-type Identifier struct {
-	Token gtoken.Token
-	Value string
+func (s *LetStatement) statementNode()       {}
+func (s *LetStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *LetStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(s.TokenLiteral() + " ")
+	out.WriteString(s.Name.String())
+	out.WriteString(" = ")
+	if s.Value != nil {
+		out.WriteString(s.Value.String())
+	}
+	out.WriteString(";")
+	return out.String()
 }
 
-func (i *Identifier) expressionNode()      {}
-func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
+type ReturnStatement struct {
+	Token       gtoken.Token
+	ReturnValue Expression
+}
+
+func (s *ReturnStatement) statementNode()       {}
+func (s *ReturnStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *ReturnStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(s.TokenLiteral() + " ")
+	if s.ReturnValue != nil {
+		out.WriteString(s.ReturnValue.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+
+type ExpressionStatement struct {
+	Token      gtoken.Token
+	Expression Expression
+}
+
+func (s *ExpressionStatement) statementNode()       {}
+func (s *ExpressionStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *ExpressionStatement) String() string {
+	if s.Expression != nil {
+		return s.Expression.String()
+	}
+	return ""
+}

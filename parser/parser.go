@@ -9,11 +9,14 @@ import (
 )
 
 type Parser struct {
-	l *lexer.Lexer
+	l      *lexer.Lexer
+	errors []string
 
-	errors    []string
 	curToken  gtoken.Token
 	peekToken gtoken.Token
+
+	prefixParseFns map[gtoken.TokenType]prefixParseFn
+	infixParseFns  map[gtoken.TokenType]infixParseFn
 }
 
 func NewParser(l *lexer.Lexer) *Parser {
@@ -21,6 +24,9 @@ func NewParser(l *lexer.Lexer) *Parser {
 		l:      l,
 		errors: []string{},
 	}
+
+	p.initExpression()
+
 	p.NextToken()
 	p.NextToken()
 
@@ -51,9 +57,20 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case gtoken.LET:
 		return p.parseLetStatement()
+	case gtoken.RETURN:
+		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	stmt := &ast.ReturnStatement{Token: p.curToken}
+	p.NextToken()
+	for !p.curTokenIs(gtoken.SEMICOLON) {
+		p.NextToken()
+	}
+	return stmt
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
@@ -86,6 +103,7 @@ func (p *Parser) expectPeek(t gtoken.TokenType) bool {
 		p.NextToken()
 		return true
 	} else {
+		p.peekError(t)
 		return false
 	}
 }
