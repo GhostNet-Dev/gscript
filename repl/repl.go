@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/GhostNet-Dev/glambda/gtoken"
+	"github.com/GhostNet-Dev/glambda/evaluator"
 	"github.com/GhostNet-Dev/glambda/lexer"
+	"github.com/GhostNet-Dev/glambda/parser"
 )
 
 const PROMPT = ">> "
@@ -23,9 +24,23 @@ func Start(in io.Reader, out io.Writer) {
 
 		line := scanner.Text()
 		lexer := lexer.NewLexer(line)
+		p := parser.NewParser(lexer)
 
-		for tok := lexer.NextTokenMake(); tok.Type != gtoken.EOF; tok = lexer.NextTokenMake() {
-			fmt.Fprintf(out, "%+v\n", tok)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(out, p.Errors())
+			continue
 		}
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
+		}
+	}
+}
+
+func printParserErrors(out io.Writer, errors []string) {
+	for _, msg := range errors {
+		io.WriteString(out, "\t"+msg+"\n")
 	}
 }

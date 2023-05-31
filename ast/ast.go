@@ -72,6 +72,21 @@ func (s *ReturnStatement) String() string {
 	return out.String()
 }
 
+type BlockStatement struct {
+	Token      gtoken.Token
+	Statements []Statement
+}
+
+func (s *BlockStatement) statementNode()       {}
+func (s *BlockStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *BlockStatement) String() string {
+	var out bytes.Buffer
+	for _, statement := range s.Statements {
+		out.WriteString(statement.String())
+	}
+	return out.String()
+}
+
 type ExpressionStatement struct {
 	Token      gtoken.Token
 	Expression Expression

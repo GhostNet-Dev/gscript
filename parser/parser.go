@@ -64,10 +64,28 @@ func (p *Parser) parseStatement() ast.Statement {
 	}
 }
 
+func (p *Parser) parseBlockStatemnt() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: p.curToken}
+	block.Statements = []ast.Statement{}
+	p.NextToken()
+
+	for !p.curTokenIs(gtoken.RBRACE) && !p.curTokenIs(gtoken.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+		p.NextToken()
+	}
+	return block
+}
+
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 	p.NextToken()
-	for !p.curTokenIs(gtoken.SEMICOLON) {
+
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+
+	for !p.curTokenIs(gtoken.SEMICOLON) && !p.curTokenIs(gtoken.EOF) {
 		p.NextToken()
 	}
 	return stmt
@@ -83,8 +101,10 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if !p.expectPeek(gtoken.ASSIGN) {
 		return nil
 	}
+	p.NextToken()
+	stmt.Value = p.parseExpression(LOWEST)
 
-	for !p.curTokenIs(gtoken.SEMICOLON) {
+	for !p.curTokenIs(gtoken.SEMICOLON) && !p.curTokenIs(gtoken.EOF) {
 		p.NextToken()
 	}
 	return stmt
