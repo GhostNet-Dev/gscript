@@ -17,6 +17,7 @@ const (
 	PRODUCT     // *
 	PREFIX      // -X OR !X
 	CALL        // myFunction(X)
+	INDEX       // array[index]
 )
 
 var precedences = map[gtoken.TokenType]int{
@@ -29,6 +30,7 @@ var precedences = map[gtoken.TokenType]int{
 	gtoken.SLASH:    PRODUCT,
 	gtoken.ASTERISK: PRODUCT,
 	gtoken.LPAREN:   CALL,
+	gtoken.LBRACKET: INDEX,
 }
 
 type (
@@ -47,6 +49,9 @@ func (p *Parser) initExpression() {
 	p.registerPrefix(gtoken.LPAREN, p.parseGroupedExpresion)
 	p.registerPrefix(gtoken.IF, p.parseIfExpresion)
 	p.registerPrefix(gtoken.FUNCTION, p.parseFunctionLiteral)
+	p.registerPrefix(gtoken.STRING, p.parseStringLiteral)
+	p.registerPrefix(gtoken.LBRACKET, p.parseArrayLiteral)
+	p.registerPrefix(gtoken.LBRACE, p.parseHashLiteral)
 
 	p.infixParseFns = make(map[gtoken.TokenType]infixParseFn)
 	p.registerInfix(gtoken.PLUS, p.parseInfixExpression)
@@ -58,32 +63,77 @@ func (p *Parser) initExpression() {
 	p.registerInfix(gtoken.LT, p.parseInfixExpression)
 	p.registerInfix(gtoken.RT, p.parseInfixExpression)
 	p.registerInfix(gtoken.LPAREN, p.parseCallExpression)
+	p.registerInfix(gtoken.LBRACKET, p.parseIndexExpression)
+}
+
+func (p *Parser) parseHashLiteral() ast.Expression {
+	hash := &ast.HashLiteral{Token: p.curToken}
+	hash.Pairs = make(map[ast.Expression]ast.Expression)
+
+	for !p.peekTokenIs(gtoken.RBRACE) {
+		p.NextToken()
+		key := p.parseExpression(LOWEST)
+		if !p.expectPeek((gtoken.COLON)) {
+			return nil
+		}
+		p.NextToken()
+		value := p.parseExpression(LOWEST)
+		hash.Pairs[key] = value
+		if !p.peekTokenIs(gtoken.RBRACE) && !p.expectPeek(gtoken.COMMA) {
+			return nil
+		}
+	}
+	if !p.expectPeek(gtoken.RBRACE) {
+		return nil
+	}
+	return hash
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
+	p.NextToken()
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(gtoken.RBRACKET) {
+		return nil
+	}
+	return exp
+}
+
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.curToken}
+	array.Elements = p.parseExpressionList(gtoken.RBRACKET)
+	return array
+}
+
+func (p *Parser) parseExpressionList(end gtoken.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+	if p.peekTokenIs(end) {
+		p.NextToken()
+		return list
+	}
+
+	p.NextToken()
+	list = append(list, p.parseExpression(LOWEST))
+	for p.peekTokenIs(gtoken.COMMA) {
+		p.NextToken()
+		p.NextToken()
+		list = append(list, p.parseExpression(LOWEST))
+	}
+	if !p.expectPeek(end) {
+		return nil
+	}
+	return list
+}
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	exp := &ast.CallExpression{Token: p.curToken, Function: function}
-	exp.Arguments = p.parseCallArguments()
+	exp.Arguments = p.parseExpressionList(gtoken.RPAREN)
 	return exp
-}
-
-func (p *Parser) parseCallArguments() []ast.Expression {
-	args := []ast.Expression{}
-	if p.peekTokenIs(gtoken.RPAREN) {
-		p.NextToken()
-		return args
-	}
-	p.NextToken()
-	args = append(args, p.parseExpression(LOWEST))
-
-	for p.peekTokenIs(gtoken.COMMA) {
-		p.NextToken()
-		p.NextToken()
-		args = append(args, p.parseExpression(LOWEST))
-	}
-	if !p.expectPeek(gtoken.RPAREN) {
-		return nil
-	}
-	return args
 }
 
 func (p *Parser) parseFunctionLiteral() ast.Expression {

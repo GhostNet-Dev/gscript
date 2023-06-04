@@ -21,6 +21,15 @@ func (i *Identifier) expressionNode()      {}
 func (i *Identifier) TokenLiteral() string { return i.Token.Literal }
 func (i *Identifier) String() string       { return i.Value }
 
+type StringLiteral struct {
+	Token gtoken.Token
+	Value string
+}
+
+func (s *StringLiteral) expressionNode()      {}
+func (s *StringLiteral) TokenLiteral() string { return s.Token.Literal }
+func (s *StringLiteral) String() string       { return s.TokenLiteral() }
+
 type IntegerLiteral struct {
 	Token gtoken.Token
 	Value int64
@@ -38,6 +47,62 @@ type Boolean struct {
 func (s *Boolean) expressionNode()      {}
 func (s *Boolean) TokenLiteral() string { return s.Token.Literal }
 func (s *Boolean) String() string       { return s.Token.Literal }
+
+type IndexExpression struct {
+	Token gtoken.Token
+	Left  Expression
+	Index Expression
+}
+
+func (s *IndexExpression) expressionNode()      {}
+func (s *IndexExpression) TokenLiteral() string { return s.Token.Literal }
+func (s *IndexExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(s.Left.String())
+	out.WriteString("[")
+	out.WriteString(s.Index.String())
+	out.WriteString("])")
+	return out.String()
+}
+
+type ArrayLiteral struct {
+	Token    gtoken.Token
+	Elements []Expression
+}
+
+func (s *ArrayLiteral) expressionNode()      {}
+func (s *ArrayLiteral) TokenLiteral() string { return s.Token.Literal }
+func (s *ArrayLiteral) String() string {
+	var out bytes.Buffer
+	elements := []string{}
+	for _, el := range s.Elements {
+		elements = append(elements, el.String())
+	}
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+	return out.String()
+}
+
+type HashLiteral struct {
+	Token gtoken.Token
+	Pairs map[Expression]Expression
+}
+
+func (s *HashLiteral) expressionNode()      {}
+func (s *HashLiteral) TokenLiteral() string { return s.Token.Literal }
+func (s *HashLiteral) String() string {
+	var out bytes.Buffer
+	elements := []string{}
+	for key, value := range s.Pairs {
+		elements = append(elements, key.String()+":"+value.String())
+	}
+	out.WriteString("{")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("}")
+	return out.String()
+}
 
 type IfExpression struct {
 	Token       gtoken.Token

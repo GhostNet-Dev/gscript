@@ -64,6 +64,8 @@ func (l *Lexer) NextTokenMake() gtoken.Token {
 		tok = gtoken.NewToken(gtoken.RT, l.ch)
 	case ';':
 		tok = gtoken.NewToken(gtoken.SEMICOLON, l.ch)
+	case ':':
+		tok = gtoken.NewToken(gtoken.COLON, l.ch)
 	case '(':
 		tok = gtoken.NewToken(gtoken.LPAREN, l.ch)
 	case ')':
@@ -74,6 +76,13 @@ func (l *Lexer) NextTokenMake() gtoken.Token {
 		tok = gtoken.NewToken(gtoken.LBRACE, l.ch)
 	case '}':
 		tok = gtoken.NewToken(gtoken.RBRACE, l.ch)
+	case '[':
+		tok = gtoken.NewToken(gtoken.LBRACKET, l.ch)
+	case ']':
+		tok = gtoken.NewToken(gtoken.RBRACKET, l.ch)
+	case '"':
+		tok.Type = gtoken.STRING
+		tok.Literal = l.readString()
 	case 0:
 		tok.Literal = ""
 		tok.Type = gtoken.EOF
@@ -107,6 +116,17 @@ func (l *Lexer) skipWhiteSpace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.readChar()
 	}
+}
+
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return l.input[position:l.position]
 }
 
 func (l *Lexer) readNumber() string {

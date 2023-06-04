@@ -76,7 +76,12 @@ func CodeTestSet() (string, []ExpectedData) {
 	let add = fn(x, y) {
 		x+y;
 	};
-	let result = add(five, test);`, []ExpectedData{
+	let result = add(five, test);
+	"foobar"
+	"foo bar"
+	[1, 2];
+	{"foo": "bar"};
+	`, []ExpectedData{
 			{gtoken.LET, "let"}, {gtoken.IDENT, "five"}, {gtoken.ASSIGN, "="}, {gtoken.INT, "5"}, {gtoken.SEMICOLON, ";"},
 			{gtoken.LET, "let"}, {gtoken.IDENT, "test"}, {gtoken.ASSIGN, "="}, {gtoken.INT, "10"}, {gtoken.SEMICOLON, ";"},
 			{gtoken.LET, "let"}, {gtoken.IDENT, "add"}, {gtoken.ASSIGN, "="}, {gtoken.FUNCTION, "fn"},
@@ -84,6 +89,9 @@ func CodeTestSet() (string, []ExpectedData) {
 			{gtoken.LBRACE, "{"}, {gtoken.IDENT, "x"}, {gtoken.PLUS, "+"}, {gtoken.IDENT, "y"}, {gtoken.SEMICOLON, ";"}, {gtoken.RBRACE, "}"}, {gtoken.SEMICOLON, ";"},
 			{gtoken.LET, "let"}, {gtoken.IDENT, "result"}, {gtoken.ASSIGN, "="}, {gtoken.IDENT, "add"},
 			{gtoken.LPAREN, "("}, {gtoken.IDENT, "five"}, {gtoken.COMMA, ","}, {gtoken.IDENT, "test"}, {gtoken.RPAREN, ")"}, {gtoken.SEMICOLON, ";"},
+			{gtoken.STRING, "foobar"}, {gtoken.STRING, "foo bar"},
+			{gtoken.LBRACKET, "["}, {gtoken.INT, "1"}, {gtoken.COMMA, ","}, {gtoken.INT, "2"}, {gtoken.RBRACKET, "]"}, {gtoken.SEMICOLON, ";"},
+			{gtoken.LBRACE, "{"}, {gtoken.STRING, "foo"}, {gtoken.COLON, ":"}, {gtoken.STRING, "bar"}, {gtoken.RBRACE, "}"}, {gtoken.SEMICOLON, ";"},
 			{gtoken.EOF, ""},
 		}
 }
@@ -104,7 +112,7 @@ func SimpleTestSet() (string, []ExpectedData) {
 }
 
 func TestNextToken(t *testing.T) {
-	input, tests := CodeTestSet2()
+	input, tests := CodeTestSet()
 
 	l := NewLexer(input)
 
