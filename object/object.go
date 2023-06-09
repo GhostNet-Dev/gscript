@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/GhostNet-Dev/glambda/ast"
+	"github.com/GhostNet-Dev/glambda/code"
 )
 
 type ObjectType string
@@ -17,16 +18,17 @@ type Object interface {
 }
 
 const (
-	INTEGER_OBJ      = "INTEGER"
-	BOOLEAN_OBJ      = "BOOLEAN"
-	NULL_OBJ         = "NULL"
-	RETURN_VALUE_OBJ = "RETURN_VALUE"
-	ERROR_OBJ        = "ERROR"
-	FUNCTION_OBJ     = "FUNCTION"
-	STRING_OBJ       = "STRING"
-	BUILTIN_OBJ      = "BUILTIN"
-	ARRAY_OBJ        = "ARRAY"
-	HASH_OBJ         = "HASH"
+	INTEGER_OBJ           = "INTEGER"
+	BOOLEAN_OBJ           = "BOOLEAN"
+	NULL_OBJ              = "NULL"
+	RETURN_VALUE_OBJ      = "RETURN_VALUE"
+	ERROR_OBJ             = "ERROR"
+	FUNCTION_OBJ          = "FUNCTION"
+	COMPILED_FUNCTION_OBJ = "COMPILED_FUNCTION"
+	STRING_OBJ            = "STRING"
+	BUILTIN_OBJ           = "BUILTIN"
+	ARRAY_OBJ             = "ARRAY"
+	HASH_OBJ              = "HASH"
 )
 
 type Hashable interface{ HashKey() HashKey }
@@ -115,6 +117,15 @@ func (o *Function) Inspect() string {
 	out.WriteString(o.Body.String())
 	out.WriteString("\n}")
 	return out.String()
+}
+
+type CompiledFunction struct {
+	Instructions code.Instructions
+}
+
+func (o *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTION_OBJ }
+func (o *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CompiledFunction[%p]", o)
 }
 
 type Error struct {

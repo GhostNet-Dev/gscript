@@ -17,6 +17,327 @@ type compilerTestCase struct {
 	expectedInstructions []code.Instructions
 }
 
+func TestFunctionCalls(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() { 24 }();`,
+			expectedConstants: []interface{}{
+				24, []code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			let noArg = fn() { 24 };
+			noArg();`,
+			expectedConstants: []interface{}{
+				24, []code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestFunctionsWithoutReturnValue(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() {}`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpReturn),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestCompilerScopes(t *testing.T) {
+	compiler := NewCompiler()
+	if compiler.scopeIndex != 0 {
+		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
+	}
+	compiler.emit(code.OpMul)
+	compiler.enterScope()
+	if compiler.scopeIndex != 1 {
+		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 1)
+	}
+	compiler.emit(code.OpSub)
+	if len(compiler.scopes[compiler.scopeIndex].instructions) != 1 {
+		t.Errorf("instructions length wrong. got=%d",
+			len(compiler.scopes[compiler.scopeIndex].instructions))
+	}
+	last := compiler.scopes[compiler.scopeIndex].lastInstruction
+	if last.Opcode != code.OpSub {
+		t.Errorf("lastInstruction.Opcode wrong. got=%d, want=%d", last.Opcode, code.OpSub)
+	}
+	compiler.leaveScope()
+	if compiler.scopeIndex != 0 {
+		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
+	}
+	compiler.emit(code.OpAdd)
+	if len(compiler.scopes[compiler.scopeIndex].instructions) != 2 {
+		t.Errorf("instructions length wrong. got=%d", len(compiler.scopes[compiler.scopeIndex].instructions))
+	}
+	last = compiler.scopes[compiler.scopeIndex].lastInstruction
+	if last.Opcode != code.OpAdd {
+		t.Errorf("lastInstruction.Opcode wrong. got=%d, want=%d", last.Opcode, code.OpAdd)
+	}
+	previous := compiler.scopes[compiler.scopeIndex].previousInstruction
+	if previous.Opcode != code.OpMul {
+		t.Errorf("previousInstruction.Opcode wrong. got=%d, want=%d",
+			previous.Opcode, code.OpMul)
+	}
+}
+
+func TestFunctions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() {return 5 + 10}`,
+			expectedConstants: []interface{}{
+				5, 10, []code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `fn() {1; 2}`,
+			expectedConstants: []interface{}{
+				1, 2, []code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpPop),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestIndexExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "[1, 2, 3][1 + 1]",
+			expectedConstants: []interface{}{1, 2, 3, 1, 1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpAdd),
+				code.Make(code.OpIndex),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "{1: 2}[2 - 1]",
+			expectedConstants: []interface{}{1, 2, 2, 1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpHash, 22),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpSub),
+				code.Make(code.OpIndex),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestHashLiterals(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "{}",
+			expectedConstants: []interface{}{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpHash, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "{1: 2, 3: 4, 5: 6}",
+			expectedConstants: []interface{}{1, 2, 3, 4, 5, 6},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpHash, 6),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "{1: 2 + 3, 4: 5 * 6}",
+			expectedConstants: []interface{}{1, 2, 3, 4, 5, 6},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpAdd),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpMul),
+				code.Make(code.OpHash, 4),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestArrayLiterals(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "[]",
+			expectedConstants: []interface{}{},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpArray, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "[1, 2, 3]",
+			expectedConstants: []interface{}{1, 2, 3},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "[1 + 2, 3 - 4, 5 * 6]",
+			expectedConstants: []interface{}{1, 2, 3, 4, 5, 6},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpSub),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpConstant, 5),
+				code.Make(code.OpMul),
+				code.Make(code.OpArray, 3),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestStringExpressions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             `"monkey"`,
+			expectedConstants: []interface{}{"monkey"},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             `"mon"+"key"`,
+			expectedConstants: []interface{}{"mon", "key"},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestGlobalLetStatements(t *testing.T) {
+	tests := []compilerTestCase{{
+		input: `
+		let one = 1;
+		let two = 2;
+		`,
+		expectedConstants: []interface{}{1, 2},
+		expectedInstructions: []code.Instructions{
+			code.Make(code.OpConstant, 0),
+			code.Make(code.OpSetGlobal, 0),
+			code.Make(code.OpConstant, 1),
+			code.Make(code.OpSetGlobal, 1),
+		},
+	}, {
+		input: `
+		let one = 1;
+		one;
+		`,
+		expectedConstants: []interface{}{1},
+		expectedInstructions: []code.Instructions{
+			code.Make(code.OpConstant, 0),
+			code.Make(code.OpSetGlobal, 0),
+			code.Make(code.OpGetGlobal, 0),
+			code.Make(code.OpPop),
+		},
+	},
+		{
+			input: `
+		let one = 1;
+		let two = one;
+		two;
+		`,
+			expectedConstants: []interface{}{1},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpSetGlobal, 1),
+				code.Make(code.OpGetGlobal, 1),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -28,14 +349,18 @@ func TestConditionals(t *testing.T) {
 				// 0000
 				code.Make(code.OpTrue),
 				// 0001
-				code.Make(code.OpJumpNotTruthy, 7),
+				code.Make(code.OpJumpNotTruthy, 10),
 				// 0004
 				code.Make(code.OpConstant, 0),
 				// 0007
-				code.Make(code.OpPop),
-				// 0008
-				code.Make(code.OpConstant, 1),
+				code.Make(code.OpJump, 11),
+				// 0010
+				code.Make(code.OpNull),
 				// 0011
+				code.Make(code.OpPop),
+				// 0012
+				code.Make(code.OpConstant, 1),
+				// 0015
 				code.Make(code.OpPop),
 			},
 		},
@@ -246,10 +571,35 @@ func testConstants(t *testing.T, expected []interface{}, actual []object.Object)
 			if err != nil {
 				return fmt.Errorf("constant %d - testIntegerObject failed: %s", i, err)
 			}
+		case string:
+			if err := testStringObject(constant, actual[i]); err != nil {
+				return fmt.Errorf("constant %d - testStringObject failed: %s", i, err)
+			}
+		case []code.Instructions:
+			fn, ok := actual[i].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("constant %d - not a function: %T", i, actual[i])
+			}
+			if err := testInstructions(constant, fn.Instructions); err != nil {
+				return fmt.Errorf("constant %d - testInstructions failed: %s", i, err)
+			}
 		}
 	}
 	return nil
 }
+
+func testStringObject(expected string, actual object.Object) error {
+	result, ok := actual.(*object.String)
+	if !ok {
+		return fmt.Errorf("object is not String. got=%t (%+v)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value. got=%q, want=%q", result.Value, expected)
+	}
+	return nil
+}
+
 func testIntegerObject(expected int64, actual object.Object) error {
 	result, ok := actual.(*object.Integer)
 	if !ok {
