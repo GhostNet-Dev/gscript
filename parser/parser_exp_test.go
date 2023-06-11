@@ -398,7 +398,7 @@ func TestIntegerLiteralExpression(t *testing.T) {
 func TestIdentifierExpression(t *testing.T) {
 	input := "foobar;"
 	stmt := testExpressionStatement(input, t)
-	if !testIdentifier(t, stmt.Expression, input) {
+	if !testIdentifier(t, stmt.Expression, "foobar") {
 		t.Errorf("ident expressionStatement fail.")
 	}
 }

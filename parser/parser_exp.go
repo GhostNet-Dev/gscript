@@ -146,7 +146,7 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	if !p.expectPeek(gtoken.LBRACE) {
 		return nil
 	}
-	lit.Body = p.parseBlockStatemnt()
+	lit.Body = p.parseBlockStatement()
 	return lit
 }
 
@@ -184,13 +184,13 @@ func (p *Parser) parseIfExpresion() ast.Expression {
 	if !p.expectPeek(gtoken.LBRACE) {
 		return nil
 	}
-	expression.Consequence = p.parseBlockStatemnt()
+	expression.Consequence = p.parseBlockStatement()
 	if p.peekTokenIs(gtoken.ELSE) {
 		p.NextToken()
 		if !p.expectPeek(gtoken.LBRACE) {
 			return nil
 		}
-		expression.Alternative = p.parseBlockStatemnt()
+		expression.Alternative = p.parseBlockStatement()
 	}
 	return expression
 }

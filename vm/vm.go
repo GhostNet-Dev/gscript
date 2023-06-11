@@ -34,7 +34,7 @@ type VM struct {
 
 func NewVM(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn)
+	mainFrame := NewFrame(mainFn, 0)
 
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
@@ -126,6 +126,18 @@ func (vm *VM) Run() error {
 			if err := vm.push(vm.globals[globalIndex]); err != nil {
 				return err
 			}
+		case code.OpSetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			frame := vm.currentFrame()
+			vm.stack[frame.basePointer+int(localIndex)] = vm.pop()
+		case code.OpGetLocal:
+			localIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			frame := vm.currentFrame()
+			if err := vm.push(vm.stack[frame.basePointer+int(localIndex)]); err != nil {
+				return err
+			}
 		case code.OpArray:
 			numElements := int(code.ReadUint16(ins[ip+1:]))
 			vm.currentFrame().ip += 2
@@ -152,28 +164,72 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case code.OpCall:
-			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
-			if !ok {
-				return fmt.Errorf("Calling non-function")
+			numArgs := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+			if err := vm.executeCall(int(numArgs)); err != nil {
+				return err
 			}
-			frame := NewFrame(fn)
-			vm.pushFrame(frame)
+
 		case code.OpReturnValue:
 			returnValue := vm.pop()
-			vm.popFrame()
-			vm.pop()
+
+			frame := vm.popFrame()
+			vm.sp = frame.basePointer - 1
+
 			if err := vm.push(returnValue); err != nil {
 				return err
 			}
 		case code.OpReturn:
-			vm.popFrame()
-			vm.pop()
+			frame := vm.popFrame()
+			vm.sp = frame.basePointer - 1
+
 			if err := vm.push(Null); err != nil {
+				return err
+			}
+		case code.OpGetBuiltin:
+			builtinIndex := code.ReadUint8(ins[ip+1:])
+			vm.currentFrame().ip += 1
+
+			definition := object.Builtins[builtinIndex]
+			if err := vm.push(definition.Builtin); err != nil {
 				return err
 			}
 		case code.OpPop:
 			vm.pop()
 		}
+	}
+	return nil
+}
+func (vm *VM) executeCall(numArg int) error {
+	callee := vm.stack[vm.sp-1-numArg]
+	switch callee := callee.(type) {
+	case *object.CompiledFunction:
+		return vm.callFunction(callee, numArg)
+	case *object.Builtin:
+		return vm.callBuiltin(callee, numArg)
+	default:
+		return fmt.Errorf("calling non-function and non-built-in")
+	}
+}
+func (vm *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
+	if numArgs != fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: want=%d, got=%d",
+			fn.NumParameters, numArgs)
+	}
+	frame := NewFrame(fn, vm.sp-numArgs)
+	vm.pushFrame(frame)
+	vm.sp = frame.basePointer + fn.NumLocals
+
+	return nil
+}
+func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
+	args := vm.stack[vm.sp-numArgs : vm.sp]
+	result := builtin.Fn(args...)
+	vm.sp = vm.sp - numArgs - 1
+	if result != nil {
+		vm.push(result)
+	} else {
+		vm.push(Null)
 	}
 	return nil
 }
