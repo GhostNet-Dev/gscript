@@ -104,6 +104,10 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	p.NextToken()
 	stmt.Value = p.parseExpression(LOWEST)
 
+	if fl, ok := stmt.Value.(*ast.FunctionLiteral); ok {
+		fl.Name = stmt.Name.Value
+	}
+
 	for !p.curTokenIs(gtoken.SEMICOLON) && !p.curTokenIs(gtoken.EOF) {
 		p.NextToken()
 	}

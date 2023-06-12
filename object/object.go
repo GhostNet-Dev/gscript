@@ -29,6 +29,7 @@ const (
 	BUILTIN_OBJ           = "BUILTIN"
 	ARRAY_OBJ             = "ARRAY"
 	HASH_OBJ              = "HASH"
+	CLOSURE_OBJ           = "CLOSURE"
 )
 
 type Hashable interface{ HashKey() HashKey }
@@ -95,6 +96,14 @@ func (o *String) HashKey() HashKey {
 	h.Write([]byte(o.Value))
 	return HashKey{Type: o.Type(), Value: h.Sum64()}
 }
+
+type Closure struct {
+	Fn   *CompiledFunction
+	Free []Object
+}
+
+func (o *Closure) Type() ObjectType { return CLOSURE_OBJ }
+func (o *Closure) Inspect() string { return fmt.Sprintf("Closure[%p]", o) }
 
 type Function struct {
 	Parameters []*ast.Identifier

@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/GhostNet-Dev/glambda/gtoken"
@@ -151,6 +152,7 @@ type FunctionLiteral struct {
 	Token      gtoken.Token
 	Parameters []*Identifier
 	Body       *BlockStatement
+	Name       string
 }
 
 func (s *FunctionLiteral) expressionNode()      {}
@@ -162,6 +164,9 @@ func (s *FunctionLiteral) String() string {
 		params = append(params, p.String())
 	}
 	out.WriteString(s.TokenLiteral())
+	if s.Name != "" {
+		out.WriteString(fmt.Sprintf("<%s>", s.Name))
+	}
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(")")
