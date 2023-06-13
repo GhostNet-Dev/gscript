@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/GhostNet-Dev/glambda/gtoken"
@@ -10,6 +11,28 @@ import (
 type ExpectedData struct {
 	expectedType    gtoken.TokenType
 	expectedLiteral string
+}
+
+func TestLineNumber(t *testing.T) {
+	input := `!-/*5;
+		5 < 10 > 5;
+		if (5 < 10) {
+			return true;
+		} else {
+			return false;
+		}
+		10 == 10;
+		10 != 9;`
+
+	l := NewLexer(input)
+
+	for {
+		tok := l.NextTokenMake()
+		fmt.Printf("%d:%s\n", l.line, tok.Literal)
+		if tok.Type == gtoken.EOF {
+			break
+		}
+	}
 }
 
 func CodeTestSet2() (string, []ExpectedData) {
