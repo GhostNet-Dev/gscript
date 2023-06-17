@@ -13,6 +13,21 @@ var (
 	FALSE = &object.Boolean{Value: false}
 )
 
+func evalProgram(program *ast.Program, env *object.Environment) object.Object {
+	var result object.Object
+
+	for _, statement := range program.Statements {
+		result = Eval(statement, env)
+		switch result := result.(type) {
+		case *object.ReturnValue:
+			return result.Value
+		case *object.Error:
+			return result
+		}
+	}
+	return result
+}
+
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
@@ -25,7 +40,11 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(val) {
 			return val
 		}
-		env.Set(node.Name.Value, val)
+		if ident, ok := val.(*object.Identifier); ok {
+			val = ident.Value
+		}
+		ident := &object.Identifier{Name: node.Name.Value, Value: val}
+		env.Set(node.Name.Value, ident)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.IntegerLiteral:
@@ -57,6 +76,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalBlockStatement(node, env)
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+	case *ast.ForExpression:
+		return evalForExpression(node, env)
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
 		if isError(val) {
@@ -92,7 +113,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(right) {
 			return right
 		}
-		return evalInfixExpression(node.Operator, left, right)
+		return evalInfixExpression(node.Operator, left, right, env)
 	}
 	return nil
 }
@@ -103,6 +124,9 @@ func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Obje
 		key := Eval(keyNode, env)
 		if isError(key) {
 			return key
+		}
+		if ident, ok := key.(*object.Identifier); ok {
+			key = ident.Value
 		}
 		hashKey, ok := key.(object.Hashable)
 		if !ok {
@@ -119,6 +143,13 @@ func evalHashLiteral(node *ast.HashLiteral, env *object.Environment) object.Obje
 }
 
 func evalIndexExpression(left, index object.Object) object.Object {
+	if left.Type() == object.IDENTFIER_OBJ {
+		left = left.(*object.Identifier).Value
+	}
+	if index.Type() == object.IDENTFIER_OBJ {
+		index = index.(*object.Identifier).Value
+	}
+
 	switch {
 	case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
 		return evalArrayIndexExpression(left, index)
@@ -140,6 +171,9 @@ func evalArrayIndexExpression(array, index object.Object) object.Object {
 }
 
 func evalHashIndexExpression(hash, index object.Object) object.Object {
+	if ident, ok := hash.(*object.Identifier); ok {
+		hash = ident.Value
+	}
 	hashObject := hash.(*object.Hash)
 	key, ok := index.(object.Hashable)
 	if !ok {
@@ -153,6 +187,9 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
+	if ident, ok := fn.(*object.Identifier); ok {
+		fn = ident.Value
+	}
 	switch fn := fn.(type) {
 	case *object.Function:
 		extendedEnv := extendFunctionEnv(fn, args)
@@ -206,6 +243,21 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 	return newError("identifier not found: " + node.Value)
 }
 
+func evalForExpression(ie *ast.ForExpression, env *object.Environment) object.Object {
+	Eval(ie.Init, env)
+	condition := Eval(ie.Condition, env)
+	if isError(condition) {
+		return condition
+	}
+
+	for isTruthy(condition) {
+		Eval(ie.Consequence, env)
+		Eval(ie.Increment, env)
+		condition = Eval(ie.Condition, env)
+	}
+	return NULL
+}
+
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
 	condition := Eval(ie.Condition, env)
 	if isError(condition) {
@@ -234,7 +286,27 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func evalInfixExpression(operator string, left, right object.Object) object.Object {
+func evalInfixExpression(operator string, left, right object.Object, env *object.Environment) object.Object {
+	if operator == "=" {
+		ident, ok := left.(*object.Identifier)
+		if !ok {
+			return newError("unknown Identifier: %s %s %s",
+				left.Type(), operator, right.Type())
+		}
+		if integer, ok := right.(*object.Identifier); ok {
+			ident.Value = integer.Value
+		} else {
+			ident.Value = right
+		}
+		env.Set(ident.Name, ident)
+		return ident
+	}
+	if left.Type() == object.IDENTFIER_OBJ {
+		left = left.(*object.Identifier).Value
+	}
+	if right.Type() == object.IDENTFIER_OBJ {
+		right = right.(*object.Identifier).Value
+	}
 	switch {
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntergerInfixExpression(operator, left, right)
@@ -315,21 +387,6 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 		return TRUE
 	}
 	return FALSE
-}
-
-func evalProgram(program *ast.Program, env *object.Environment) object.Object {
-	var result object.Object
-
-	for _, statement := range program.Statements {
-		result = Eval(statement, env)
-		switch result := result.(type) {
-		case *object.ReturnValue:
-			return result.Value
-		case *object.Error:
-			return result
-		}
-	}
-	return result
 }
 
 func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) object.Object {

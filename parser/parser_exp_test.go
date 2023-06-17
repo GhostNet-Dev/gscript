@@ -250,6 +250,21 @@ func TestIfElseExpression(t *testing.T) {
 		return
 	}
 }
+func TestForExpression(t *testing.T) {
+	input := `for (x; x < y; x = x + 1) { x }`
+	stmt := testExpressionStatement(input, t)
+
+	exp, ok := stmt.Expression.(*ast.ForExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+	if !testIdentifier(t, exp.Init, "x") {
+		return
+	}
+	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+		return
+	}
+}
 
 func TestIfExpression(t *testing.T) {
 	input := `if (x < y) { x }`

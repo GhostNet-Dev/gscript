@@ -11,6 +11,7 @@ import (
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN
 	EQUALS      //==
 	LESSGREATER // > OR <
 	SUM         // +
@@ -31,6 +32,7 @@ var precedences = map[gtoken.TokenType]int{
 	gtoken.ASTERISK: PRODUCT,
 	gtoken.LPAREN:   CALL,
 	gtoken.LBRACKET: INDEX,
+	gtoken.ASSIGN:   ASSIGN,
 }
 
 type (
@@ -48,6 +50,7 @@ func (p *Parser) initExpression() {
 	p.registerPrefix(gtoken.FALSE, p.parseBoolean)
 	p.registerPrefix(gtoken.LPAREN, p.parseGroupedExpresion)
 	p.registerPrefix(gtoken.IF, p.parseIfExpresion)
+	p.registerPrefix(gtoken.FOR, p.parseForExpresion)
 	p.registerPrefix(gtoken.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(gtoken.STRING, p.parseStringLiteral)
 	p.registerPrefix(gtoken.LBRACKET, p.parseArrayLiteral)
@@ -64,6 +67,36 @@ func (p *Parser) initExpression() {
 	p.registerInfix(gtoken.RT, p.parseInfixExpression)
 	p.registerInfix(gtoken.LPAREN, p.parseCallExpression)
 	p.registerInfix(gtoken.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(gtoken.ASSIGN, p.parseInfixExpression)
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(gtoken.SEMICOLON) {
+		p.NextToken()
+	}
+	return stmt
+}
+
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		p.noPrefixParseFnError(p.curToken.Type)
+		return nil
+	}
+	leftExp := prefix()
+
+	for !p.peekTokenIs(gtoken.SEMICOLON) && precedence < p.peekPrecedence() {
+		infix := p.infixParseFns[p.peekToken.Type]
+		if infix == nil {
+			return leftExp
+		}
+		p.NextToken()
+		leftExp = infix(leftExp)
+	}
+	return leftExp
 }
 
 func (p *Parser) parseHashLiteral() ast.Expression {
@@ -171,6 +204,34 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	return identifiers
 }
 
+func (p *Parser) parseForExpresion() ast.Expression {
+	expression := &ast.ForExpression{Token: p.curToken}
+	if !p.expectPeek(gtoken.LPAREN) {
+		return nil
+	}
+	p.NextToken()
+	expression.Init = p.parseExpression(LOWEST)
+
+	if p.expectPeek(gtoken.SEMICOLON) {
+		p.NextToken()
+		expression.Condition = p.parseExpression(LOWEST)
+	}
+	if p.expectPeek(gtoken.SEMICOLON) {
+		p.NextToken()
+		expression.Increment = p.parseExpression(LOWEST)
+	}
+
+	if !p.expectPeek(gtoken.RPAREN) {
+		return nil
+	}
+	if !p.expectPeek(gtoken.LBRACE) {
+		return nil
+	}
+	expression.Consequence = p.parseBlockStatement()
+
+	return expression
+}
+
 func (p *Parser) parseIfExpresion() ast.Expression {
 	expression := &ast.IfExpression{Token: p.curToken}
 	if !p.expectPeek(gtoken.LPAREN) {
@@ -206,35 +267,6 @@ func (p *Parser) parseGroupedExpresion() ast.Expression {
 
 func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(gtoken.TRUE)}
-}
-
-func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
-	stmt := &ast.ExpressionStatement{Token: p.curToken}
-	stmt.Expression = p.parseExpression(LOWEST)
-
-	if p.peekTokenIs(gtoken.SEMICOLON) {
-		p.NextToken()
-	}
-	return stmt
-}
-
-func (p *Parser) parseExpression(precedence int) ast.Expression {
-	prefix := p.prefixParseFns[p.curToken.Type]
-	if prefix == nil {
-		p.noPrefixParseFnError(p.curToken.Type)
-		return nil
-	}
-	leftExp := prefix()
-
-	for !p.peekTokenIs(gtoken.SEMICOLON) && precedence < p.peekPrecedence() {
-		infix := p.infixParseFns[p.peekToken.Type]
-		if infix == nil {
-			return leftExp
-		}
-		p.NextToken()
-		leftExp = infix(leftExp)
-	}
-	return leftExp
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {

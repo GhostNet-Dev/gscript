@@ -20,6 +20,7 @@ type Object interface {
 const (
 	INTEGER_OBJ           = "INTEGER"
 	BOOLEAN_OBJ           = "BOOLEAN"
+	IDENTFIER_OBJ         = "IDENTIFIER"
 	NULL_OBJ              = "NULL"
 	RETURN_VALUE_OBJ      = "RETURN_VALUE"
 	ERROR_OBJ             = "ERROR"
@@ -103,7 +104,7 @@ type Closure struct {
 }
 
 func (o *Closure) Type() ObjectType { return CLOSURE_OBJ }
-func (o *Closure) Inspect() string { return fmt.Sprintf("Closure[%p]", o) }
+func (o *Closure) Inspect() string  { return fmt.Sprintf("Closure[%p]", o) }
 
 type Function struct {
 	Parameters []*ast.Identifier
@@ -152,6 +153,14 @@ type ReturnValue struct {
 
 func (o *ReturnValue) Inspect() string  { return o.Value.Inspect() }
 func (o *ReturnValue) Type() ObjectType { return RETURN_VALUE_OBJ }
+
+type Identifier struct {
+	Name  string
+	Value Object
+}
+
+func (o *Identifier) Inspect() string  { return fmt.Sprintf("%d", o.Value) }
+func (o *Identifier) Type() ObjectType { return IDENTFIER_OBJ }
 
 type Integer struct {
 	Value int64

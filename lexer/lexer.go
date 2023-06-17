@@ -85,8 +85,6 @@ func (l *Lexer) NextTokenMake() gtoken.Token {
 	case '"':
 		tok.Type = gtoken.STRING
 		tok.Literal = l.readString()
-	case '\n':
-		l.line++
 	case 0:
 		tok.Literal = ""
 		tok.Type = gtoken.EOF
@@ -116,13 +114,13 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[position:l.position]
 }
 
-func (l *Lexer) skipWhiteSpace() int {
-	skipCount := 0
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\r' {
+func (l *Lexer) skipWhiteSpace() {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\r' || l.ch == '\n' {
+		if l.ch == '\n' {
+			l.line++
+		}
 		l.readChar()
-		skipCount++
 	}
-	return skipCount
 }
 
 func (l *Lexer) readString() string {
