@@ -105,6 +105,27 @@ func (s *HashLiteral) String() string {
 	return out.String()
 }
 
+type ForExpression struct {
+	Token       gtoken.Token
+	Init        Expression
+	Increment   Expression
+	Condition   Expression
+	Consequence *BlockStatement
+}
+
+func (s *ForExpression) expressionNode()      {}
+func (s *ForExpression) TokenLiteral() string { return s.Token.Literal }
+func (s *ForExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("for")
+	out.WriteString(s.Init.String())
+	out.WriteString(s.Condition.String())
+	out.WriteString(s.Increment.String())
+	out.WriteString(" ")
+	out.WriteString(s.Consequence.String())
+	return out.String()
+}
+
 type IfExpression struct {
 	Token       gtoken.Token
 	Condition   Expression

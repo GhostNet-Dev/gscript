@@ -7,11 +7,13 @@ type Lexer struct {
 	position         int
 	nextReadPosition int
 	ch               byte
+	line             int
 }
 
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: input,
+		line:  1,
 	}
 	l.readChar()
 	return l
@@ -39,12 +41,12 @@ func (l *Lexer) NextTokenMake() gtoken.Token {
 			literal := string(ch) + string(l.ch)
 			tok = gtoken.Token{Type: gtoken.EQ, Literal: literal}
 		} else {
-			tok = gtoken.NewToken(gtoken.ASSIGN, l.ch)
+			tok = gtoken.NewToken(gtoken.ASSIGN, l.ch, l.line)
 		}
 	case '+':
-		tok = gtoken.NewToken(gtoken.PLUS, l.ch)
+		tok = gtoken.NewToken(gtoken.PLUS, l.ch, l.line)
 	case '-':
-		tok = gtoken.NewToken(gtoken.MINUS, l.ch)
+		tok = gtoken.NewToken(gtoken.MINUS, l.ch, l.line)
 	case '!':
 		if l.peekChar() == '=' {
 			ch := l.ch
@@ -52,34 +54,34 @@ func (l *Lexer) NextTokenMake() gtoken.Token {
 			literal := string(ch) + string(l.ch)
 			tok = gtoken.Token{Type: gtoken.NOT_EQ, Literal: literal}
 		} else {
-			tok = gtoken.NewToken(gtoken.BANG, l.ch)
+			tok = gtoken.NewToken(gtoken.BANG, l.ch, l.line)
 		}
 	case '/':
-		tok = gtoken.NewToken(gtoken.SLASH, l.ch)
+		tok = gtoken.NewToken(gtoken.SLASH, l.ch, l.line)
 	case '*':
-		tok = gtoken.NewToken(gtoken.ASTERISK, l.ch)
+		tok = gtoken.NewToken(gtoken.ASTERISK, l.ch, l.line)
 	case '<':
-		tok = gtoken.NewToken(gtoken.LT, l.ch)
+		tok = gtoken.NewToken(gtoken.LT, l.ch, l.line)
 	case '>':
-		tok = gtoken.NewToken(gtoken.RT, l.ch)
+		tok = gtoken.NewToken(gtoken.RT, l.ch, l.line)
 	case ';':
-		tok = gtoken.NewToken(gtoken.SEMICOLON, l.ch)
+		tok = gtoken.NewToken(gtoken.SEMICOLON, l.ch, l.line)
 	case ':':
-		tok = gtoken.NewToken(gtoken.COLON, l.ch)
+		tok = gtoken.NewToken(gtoken.COLON, l.ch, l.line)
 	case '(':
-		tok = gtoken.NewToken(gtoken.LPAREN, l.ch)
+		tok = gtoken.NewToken(gtoken.LPAREN, l.ch, l.line)
 	case ')':
-		tok = gtoken.NewToken(gtoken.RPAREN, l.ch)
+		tok = gtoken.NewToken(gtoken.RPAREN, l.ch, l.line)
 	case ',':
-		tok = gtoken.NewToken(gtoken.COMMA, l.ch)
+		tok = gtoken.NewToken(gtoken.COMMA, l.ch, l.line)
 	case '{':
-		tok = gtoken.NewToken(gtoken.LBRACE, l.ch)
+		tok = gtoken.NewToken(gtoken.LBRACE, l.ch, l.line)
 	case '}':
-		tok = gtoken.NewToken(gtoken.RBRACE, l.ch)
+		tok = gtoken.NewToken(gtoken.RBRACE, l.ch, l.line)
 	case '[':
-		tok = gtoken.NewToken(gtoken.LBRACKET, l.ch)
+		tok = gtoken.NewToken(gtoken.LBRACKET, l.ch, l.line)
 	case ']':
-		tok = gtoken.NewToken(gtoken.RBRACKET, l.ch)
+		tok = gtoken.NewToken(gtoken.RBRACKET, l.ch, l.line)
 	case '"':
 		tok.Type = gtoken.STRING
 		tok.Literal = l.readString()
@@ -96,7 +98,7 @@ func (l *Lexer) NextTokenMake() gtoken.Token {
 			tok.Literal = l.readNumber()
 			return tok
 		} else {
-			tok = gtoken.NewToken(gtoken.ILLEGAL, l.ch)
+			tok = gtoken.NewToken(gtoken.ILLEGAL, l.ch, l.line)
 		}
 	}
 
@@ -113,7 +115,10 @@ func (l *Lexer) readIdentifier() string {
 }
 
 func (l *Lexer) skipWhiteSpace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\r' || l.ch == '\n' {
+		if l.ch == '\n' {
+			l.line++
+		}
 		l.readChar()
 	}
 }

@@ -12,9 +12,28 @@ type ExpectedData struct {
 	expectedLiteral string
 }
 
-func CodeTestSet2() (string, []ExpectedData) {
+func TestCodeTestSet(t *testing.T) {
+	testLexing(t, `
+	package tester
+	import test
+	class test {}
+	for () {
+		break;
+	}
+	`, []ExpectedData{
+		{gtoken.PACKAGE, "package"}, {gtoken.IDENT, "tester"},
+		{gtoken.IMPORT, "import"}, {gtoken.IDENT, "test"},
+		{gtoken.CLASS, "class"}, {gtoken.IDENT, "test"}, {gtoken.LBRACE, "{"}, {gtoken.RBRACE, "}"},
+		{gtoken.FOR, "for"}, {gtoken.LPAREN, "("}, {gtoken.RPAREN, ")"}, {gtoken.LBRACE, "{"},
+		{gtoken.BREAK, "break"}, {gtoken.SEMICOLON, ";"},
+		{gtoken.RBRACE, "}"},
+		{gtoken.EOF, ""},
+	})
+}
+
+func TestCodeSet2(t *testing.T) {
 	var b bytes.Buffer
-	test, expect := CodeTestSet()
+	test, expect := testCodeSet()
 	expectLen := len(expect)
 	b.WriteString(test)
 	b.WriteString(`!-/*5;
@@ -67,10 +86,10 @@ func CodeTestSet2() (string, []ExpectedData) {
 		{gtoken.SEMICOLON, ";"},
 	}
 	expect = append(expect[:expectLen-1], newExp...)
-	return b.String(), expect
+	testLexing(t, b.String(), expect)
 }
 
-func CodeTestSet() (string, []ExpectedData) {
+func testCodeSet() (string, []ExpectedData) {
 	return `let five = 5;
 	let test = 10;
 	let add = fn(x, y) {
@@ -96,8 +115,13 @@ func CodeTestSet() (string, []ExpectedData) {
 		}
 }
 
-func SimpleTestSet() (string, []ExpectedData) {
-	return `=+(){},;`,
+func TestCodeSet(t *testing.T) {
+	input, tests := testCodeSet()
+	testLexing(t, input, tests)
+}
+
+func TestSimpleSet(t *testing.T) {
+	testLexing(t, `=+(){},;`,
 		[]ExpectedData{
 			{gtoken.ASSIGN, "="},
 			{gtoken.PLUS, "+"},
@@ -108,12 +132,11 @@ func SimpleTestSet() (string, []ExpectedData) {
 			{gtoken.COMMA, ","},
 			{gtoken.SEMICOLON, ";"},
 			{gtoken.EOF, ""},
-		}
+		})
 }
 
-func TestNextToken(t *testing.T) {
-	input, tests := CodeTestSet()
-
+func testLexing(t *testing.T, input string, tests []ExpectedData) {
+	t.Helper()
 	l := NewLexer(input)
 
 	for i, tt := range tests {
