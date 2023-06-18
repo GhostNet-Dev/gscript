@@ -107,7 +107,7 @@ func (s *HashLiteral) String() string {
 
 type ForExpression struct {
 	Token       gtoken.Token
-	Init        Expression
+	Init        Statement
 	Increment   Expression
 	Condition   Expression
 	Consequence *BlockStatement

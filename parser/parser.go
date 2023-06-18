@@ -55,6 +55,8 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
+	case gtoken.CLASS:
+		return p.parseClassStatement()
 	case gtoken.LET:
 		return p.parseLetStatement()
 	case gtoken.RETURN:
@@ -91,6 +93,19 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
+func (p *Parser) parseClassStatement() *ast.ClassStatement {
+	stmt := &ast.ClassStatement{Token: p.curToken}
+	if !p.expectPeek(gtoken.IDENT) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	if !p.expectPeek(gtoken.LBRACE) {
+		return nil
+	}
+	stmt.Body = p.parseBlockStatement()
+	return stmt
+}
 func (p *Parser) parseLetStatement() *ast.LetStatement {
 	stmt := &ast.LetStatement{Token: p.curToken}
 	if !p.expectPeek(gtoken.IDENT) {

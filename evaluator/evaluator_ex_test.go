@@ -34,6 +34,7 @@ func TestForExpressions(t *testing.T) {
 		input    string
 		expected int64
 	}{
+		{"for (let a = 0;a < 5;a = a + 1) {};a;", 5},
 		{"let a = 0;for (a = 0;a < 5;a = a + 1) {};a;", 5},
 	}
 

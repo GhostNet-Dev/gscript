@@ -106,6 +106,43 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestClassStatements(t *testing.T) {
+	input := `
+		class a {
+			let x = 5;
+			let y = 10;
+			let foobar = 838383;
+			fn t() {};
+		}`
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	if program == nil {
+		t.Fatal("ParseProgram() returned nil")
+	}
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain 3 statements. got=%d",
+			len(program.Statements))
+	}
+
+	tests := []struct {
+		expectedIdentifier string
+	}{
+		{"x"},
+		{"y"},
+		{"foobar"},
+	}
+
+	for i, tt := range tests {
+		stmt := program.Statements[0].(*ast.ClassStatement).Body.Statements[i]
+		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
+			return
+		}
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 	if len(errors) == 0 {

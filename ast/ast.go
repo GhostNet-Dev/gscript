@@ -35,6 +35,26 @@ func (p *Program) String() string {
 	return out.String()
 }
 
+type ClassStatement struct {
+	Token gtoken.Token
+	Name  *Identifier
+	Body  *BlockStatement
+}
+
+func (s *ClassStatement) statementNode()       {}
+func (s *ClassStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *ClassStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(s.TokenLiteral() + " ")
+	out.WriteString(s.Name.String())
+	out.WriteString(" {\n")
+	if s.Body != nil {
+		out.WriteString(s.Body.String())
+	}
+	out.WriteString("}")
+	return out.String()
+}
+
 type LetStatement struct {
 	Token gtoken.Token
 	Name  *Identifier
