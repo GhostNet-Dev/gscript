@@ -31,6 +31,7 @@ const (
 	ARRAY_OBJ             = "ARRAY"
 	HASH_OBJ              = "HASH"
 	CLOSURE_OBJ           = "CLOSURE"
+	STRUCT_OBJ            = "STRUCT"
 )
 
 type Hashable interface{ HashKey() HashKey }
@@ -110,6 +111,7 @@ type Function struct {
 	Parameters []*ast.Identifier
 	Body       *ast.BlockStatement
 	Env        *Environment
+	Name       string
 }
 
 func (o *Function) Type() ObjectType { return FUNCTION_OBJ }
@@ -161,6 +163,15 @@ type Identifier struct {
 
 func (o *Identifier) Inspect() string  { return fmt.Sprintf("%d", o.Value) }
 func (o *Identifier) Type() ObjectType { return IDENTFIER_OBJ }
+
+type Struct struct {
+	Name  string
+	Value Object
+	Body  *ast.BlockStatement
+}
+
+func (o *Struct) Inspect() string  { return fmt.Sprintf("%d", o.Value) }
+func (o *Struct) Type() ObjectType { return STRUCT_OBJ }
 
 type Integer struct {
 	Value int64

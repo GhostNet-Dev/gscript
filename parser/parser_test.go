@@ -106,9 +106,31 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
-func TestClassStatements(t *testing.T) {
+func TestUseStructStatements(t *testing.T) {
 	input := `
-		class a {
+		type a struct {
+			let x = 5;
+			let y = 10;
+			let foobar = 838383;
+			fn t() {};
+		}
+		a b;`
+	l := lexer.NewLexer(input)
+	p := NewParser(l)
+
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+	if program == nil {
+		t.Fatal("ParseProgram() returned nil")
+	}
+	if len(program.Statements) != 3 {
+		t.Fatalf("program.Statements does not contain 3 statements. got=%d",
+			len(program.Statements))
+	}
+}
+func TestTypeStatements(t *testing.T) {
+	input := `
+		type a struct {
 			let x = 5;
 			let y = 10;
 			let foobar = 838383;
@@ -123,7 +145,7 @@ func TestClassStatements(t *testing.T) {
 		t.Fatal("ParseProgram() returned nil")
 	}
 	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not contain 3 statements. got=%d",
+		t.Fatalf("program.Statements does not contain 1 statements. got=%d",
 			len(program.Statements))
 	}
 
@@ -136,7 +158,7 @@ func TestClassStatements(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		stmt := program.Statements[0].(*ast.ClassStatement).Body.Statements[i]
+		stmt := program.Statements[0].(*ast.TypeStatement).Body.Statements[i]
 		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
 			return
 		}

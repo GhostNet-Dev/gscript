@@ -28,6 +28,7 @@ const (
 	RT = ">"
 
 	COMMA     = ","
+	DOT       = "."
 	SEMICOLON = ";"
 	COLON     = ":"
 
@@ -53,6 +54,8 @@ const (
 	CLASS    = "CLASS"
 	IMPORT   = "IMPORT"
 	PACKAGE  = "PACKAGE"
+	TYPE     = "TYPE"
+	STRUCT    = "STRUCT"
 )
 
 var keywords = map[string]TokenType{
@@ -66,9 +69,10 @@ var keywords = map[string]TokenType{
 	"return":  RETURN,
 	"for":     FOR,
 	"break":   BREAK,
-	"class":   CLASS,
 	"import":  IMPORT,
 	"package": PACKAGE,
+	"type":    TYPE,
+	"struct":    STRUCT,
 }
 
 func NewToken(tokenType TokenType, ch byte, line int) Token {

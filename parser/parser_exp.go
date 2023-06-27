@@ -19,6 +19,7 @@ const (
 	PREFIX      // -X OR !X
 	CALL        // myFunction(X)
 	INDEX       // array[index]
+	DOT         // .
 )
 
 var precedences = map[gtoken.TokenType]int{
@@ -33,6 +34,7 @@ var precedences = map[gtoken.TokenType]int{
 	gtoken.LPAREN:   CALL,
 	gtoken.LBRACKET: INDEX,
 	gtoken.ASSIGN:   ASSIGN,
+	gtoken.DOT:      DOT,
 }
 
 type (

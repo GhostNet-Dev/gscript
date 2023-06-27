@@ -1,6 +1,22 @@
 package evaluator
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/GhostNet-Dev/glambda/object"
+)
+
+func TestTypeStruct(t *testing.T) {
+	input := `type a struct
+	{
+		let b = 0;
+	}`
+	evaluated := testEval(input)
+	_, ok := evaluated.(*object.Struct)
+	if !ok {
+		t.Fatalf("Eval didn't return Hash. got=%T (%+v)", evaluated, evaluated)
+	}
+}
 
 func TestAssignStatements(t *testing.T) {
 	tests := []struct {
@@ -36,6 +52,21 @@ func TestForExpressions(t *testing.T) {
 	}{
 		{"for (let a = 0;a < 5;a = a + 1) {};a;", 5},
 		{"let a = 0;for (a = 0;a < 5;a = a + 1) {};a;", 5},
+		{"let a = 0;let b = 0;for (a = 0;a < 5;a = a + 1) {b = b + 1;};b;", 5},
+	}
+
+	for i, tt := range tests {
+		testIntegerObject(t, testEval(tt.input), tt.expected, i)
+	}
+}
+func TestFunctionNameObject(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let x = 1;let func = fn() { let x = 0;x = x + 2; };func();x", 1},
+		{"let x = 1;let func = fn() { x = x + 2; };func();x", 3},
+		{"let x = 1;let func = fn() { let x = 0;x + 2; };func();", 2},
 	}
 
 	for i, tt := range tests {

@@ -35,15 +35,36 @@ func (p *Program) String() string {
 	return out.String()
 }
 
-type ClassStatement struct {
+type TypeStatement struct {
+	Token gtoken.Token
+	Name  *Identifier
+	Type  *IdentifierType
+	Body  *ObjectBlockStatement
+}
+
+func (s *TypeStatement) statementNode()       {}
+func (s *TypeStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *TypeStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString("type " + s.Name.String() + " ")
+	out.WriteString(s.TokenLiteral())
+	out.WriteString(" {\n")
+	if s.Body != nil {
+		out.WriteString(s.Body.String())
+	}
+	out.WriteString("}")
+	return out.String()
+}
+
+type StructStatement struct {
 	Token gtoken.Token
 	Name  *Identifier
 	Body  *BlockStatement
 }
 
-func (s *ClassStatement) statementNode()       {}
-func (s *ClassStatement) TokenLiteral() string { return s.Token.Literal }
-func (s *ClassStatement) String() string {
+func (s *StructStatement) statementNode()       {}
+func (s *StructStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *StructStatement) String() string {
 	var out bytes.Buffer
 	out.WriteString(s.TokenLiteral() + " ")
 	out.WriteString(s.Name.String())
@@ -89,6 +110,21 @@ func (s *ReturnStatement) String() string {
 		out.WriteString(s.ReturnValue.String())
 	}
 	out.WriteString(";")
+	return out.String()
+}
+
+type ObjectBlockStatement struct {
+	Token      gtoken.Token
+	Statements []Statement
+}
+
+func (s *ObjectBlockStatement) statementNode()       {}
+func (s *ObjectBlockStatement) TokenLiteral() string { return s.Token.Literal }
+func (s *ObjectBlockStatement) String() string {
+	var out bytes.Buffer
+	for _, statement := range s.Statements {
+		out.WriteString(statement.String())
+	}
 	return out.String()
 }
 
