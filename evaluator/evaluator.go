@@ -35,6 +35,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
 	// Type Define
+	case *ast.TypeStatement:
+		return evalTypeExpression(node, env)
 	case *ast.LetStatement:
 		val := Eval(node.Value, env)
 		if isError(val) {
@@ -72,6 +74,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
 	// Block
+	case *ast.ObjectBlockStatement:
+		return evalObjectBlockStatement(node, env)
 	case *ast.BlockStatement:
 		return evalBlockStatement(node, env)
 	case *ast.IfExpression:
@@ -87,7 +91,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.FunctionLiteral:
 		params := node.Parameters
 		body := node.Body
-		return &object.Function{Parameters: params, Env: env, Body: body}
+		return &object.Function{Parameters: params, Env: env, Body: body, Name: node.Name}
 	case *ast.CallExpression:
 		function := Eval(node.Function, env)
 		if isError(function) {
@@ -241,21 +245,6 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 		return builtin
 	}
 	return newError("identifier not found: " + node.Value)
-}
-
-func evalForExpression(ie *ast.ForExpression, env *object.Environment) object.Object {
-	Eval(ie.Init, env)
-	condition := Eval(ie.Condition, env)
-	if isError(condition) {
-		return condition
-	}
-
-	for isTruthy(condition) {
-		Eval(ie.Consequence, env)
-		Eval(ie.Increment, env)
-		condition = Eval(ie.Condition, env)
-	}
-	return NULL
 }
 
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {

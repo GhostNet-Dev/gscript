@@ -19,6 +19,7 @@ const (
 	PREFIX      // -X OR !X
 	CALL        // myFunction(X)
 	INDEX       // array[index]
+	DOT         // .
 )
 
 var precedences = map[gtoken.TokenType]int{
@@ -33,6 +34,7 @@ var precedences = map[gtoken.TokenType]int{
 	gtoken.LPAREN:   CALL,
 	gtoken.LBRACKET: INDEX,
 	gtoken.ASSIGN:   ASSIGN,
+	gtoken.DOT:      DOT,
 }
 
 type (
@@ -171,6 +173,11 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 
 func (p *Parser) parseFunctionLiteral() ast.Expression {
 	lit := &ast.FunctionLiteral{Token: p.curToken}
+	if p.peekTokenIs(gtoken.IDENT) {
+		p.NextToken()
+		lit.Name = p.curToken.Literal
+	}
+
 	if !p.expectPeek(gtoken.LPAREN) {
 		return nil
 	}
@@ -210,9 +217,9 @@ func (p *Parser) parseForExpresion() ast.Expression {
 		return nil
 	}
 	p.NextToken()
-	expression.Init = p.parseExpression(LOWEST)
+	expression.Init = p.parseStatement()
 
-	if p.expectPeek(gtoken.SEMICOLON) {
+	if p.curTokenIs(gtoken.SEMICOLON) {
 		p.NextToken()
 		expression.Condition = p.parseExpression(LOWEST)
 	}

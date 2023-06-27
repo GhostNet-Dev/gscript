@@ -107,6 +107,17 @@ func GetBuiltinByName(name string) *Builtin {
 	return nil
 }
 
+func SetBuiltinFunction(name string, builtIn *Builtin) *Builtin {
+	newBuiltin :=  struct {
+		Name    string
+		Builtin *Builtin
+	}{
+		Name: name, Builtin: builtIn,
+	}
+	Builtins = append(Builtins, newBuiltin)
+	return newBuiltin.Builtin
+}
+
 func newError(format string, a ...interface{}) *Error {
 	return &Error{Message: fmt.Sprintf(format, a...)}
 }

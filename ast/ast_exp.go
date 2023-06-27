@@ -13,6 +13,25 @@ type Expression interface {
 	expressionNode()
 }
 
+type TypeIdentifier struct {
+	Token gtoken.Token
+	Value string
+}
+
+func (i *TypeIdentifier) expressionNode()      {}
+func (i *TypeIdentifier) TokenLiteral() string { return i.Token.Literal }
+func (i *TypeIdentifier) String() string       { return i.Value }
+
+type IdentifierType struct {
+	Token gtoken.Token
+	Value string
+}
+
+func (i *IdentifierType) expressionNode()      {}
+func (i *IdentifierType) TokenLiteral() string { return i.Token.Literal }
+func (i *IdentifierType) String() string       { return i.Value }
+
+
 type Identifier struct {
 	Token gtoken.Token
 	Value string
@@ -107,7 +126,7 @@ func (s *HashLiteral) String() string {
 
 type ForExpression struct {
 	Token       gtoken.Token
-	Init        Expression
+	Init        Statement
 	Increment   Expression
 	Condition   Expression
 	Consequence *BlockStatement

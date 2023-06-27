@@ -16,14 +16,14 @@ func TestCodeTestSet(t *testing.T) {
 	testLexing(t, `
 	package tester
 	import test
-	class test {}
+	type test struct{}
 	for () {
 		break;
 	}
 	`, []ExpectedData{
 		{gtoken.PACKAGE, "package"}, {gtoken.IDENT, "tester"},
 		{gtoken.IMPORT, "import"}, {gtoken.IDENT, "test"},
-		{gtoken.CLASS, "class"}, {gtoken.IDENT, "test"}, {gtoken.LBRACE, "{"}, {gtoken.RBRACE, "}"},
+		{gtoken.TYPE, "type"}, {gtoken.IDENT, "test"}, {gtoken.STRUCT, "struct"}, {gtoken.LBRACE, "{"}, {gtoken.RBRACE, "}"},
 		{gtoken.FOR, "for"}, {gtoken.LPAREN, "("}, {gtoken.RPAREN, ")"}, {gtoken.LBRACE, "{"},
 		{gtoken.BREAK, "break"}, {gtoken.SEMICOLON, ";"},
 		{gtoken.RBRACE, "}"},

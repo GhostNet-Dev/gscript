@@ -55,6 +55,8 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
+	case gtoken.TYPE:
+		return p.parseTypeStatement()
 	case gtoken.LET:
 		return p.parseLetStatement()
 	case gtoken.RETURN:
@@ -66,6 +68,21 @@ func (p *Parser) parseStatement() ast.Statement {
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	block := &ast.BlockStatement{Token: p.curToken}
+	block.Statements = []ast.Statement{}
+	p.NextToken()
+
+	for !p.curTokenIs(gtoken.RBRACE) && !p.curTokenIs(gtoken.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+		p.NextToken()
+	}
+	return block
+}
+
+func (p *Parser) parseObjectBlockStatement() *ast.ObjectBlockStatement {
+	block := &ast.ObjectBlockStatement{Token: p.curToken}
 	block.Statements = []ast.Statement{}
 	p.NextToken()
 
@@ -91,6 +108,37 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
+func (p *Parser) parseTypeStatement() *ast.TypeStatement {
+	stmt := &ast.TypeStatement{Token: p.curToken}
+	if !p.expectPeek(gtoken.IDENT) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	if !p.expectPeek(gtoken.STRUCT) {
+		return nil
+	}
+	stmt.Type = &ast.IdentifierType{Token: p.curToken, Value: p.curToken.Literal}
+
+	if stmt.Type.Value == "struct" && p.expectPeek(gtoken.LBRACE) {
+		stmt.Body = p.parseObjectBlockStatement()
+	}
+	return stmt
+}
+
+func (p *Parser) parseStructStatement() *ast.StructStatement {
+	stmt := &ast.StructStatement{Token: p.curToken}
+	if !p.expectPeek(gtoken.IDENT) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	if !p.expectPeek(gtoken.LBRACE) {
+		return nil
+	}
+	stmt.Body = p.parseBlockStatement()
+	return stmt
+}
 func (p *Parser) parseLetStatement() *ast.LetStatement {
 	stmt := &ast.LetStatement{Token: p.curToken}
 	if !p.expectPeek(gtoken.IDENT) {

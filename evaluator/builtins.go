@@ -12,3 +12,7 @@ var builtins = map[string]*object.Builtin{
 	"push":  object.GetBuiltinByName("push"),
 	"puts":  object.GetBuiltinByName("puts"),
 }
+
+func AddBuiltIn(name string, builtin *object.Builtin) {
+	builtins[name] = builtin
+}

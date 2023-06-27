@@ -258,9 +258,6 @@ func TestForExpression(t *testing.T) {
 	if !ok {
 		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
 	}
-	if !testIdentifier(t, exp.Init, "x") {
-		return
-	}
 	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
 		return
 	}
