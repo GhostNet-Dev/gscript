@@ -47,6 +47,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		ident := &object.Identifier{Name: node.Name.Value, Value: val}
 		env.Set(node.Name.Value, ident)
+	case *ast.TypeIdentifier:
+		return evalTypeIdentifier(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.IntegerLiteral:

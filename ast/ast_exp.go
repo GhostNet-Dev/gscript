@@ -14,8 +14,9 @@ type Expression interface {
 }
 
 type TypeIdentifier struct {
-	Token gtoken.Token
-	Value string
+	Token    gtoken.Token
+	Value    string
+	Variable *Identifier
 }
 
 func (i *TypeIdentifier) expressionNode()      {}
@@ -30,7 +31,6 @@ type IdentifierType struct {
 func (i *IdentifierType) expressionNode()      {}
 func (i *IdentifierType) TokenLiteral() string { return i.Token.Literal }
 func (i *IdentifierType) String() string       { return i.Value }
-
 
 type Identifier struct {
 	Token gtoken.Token

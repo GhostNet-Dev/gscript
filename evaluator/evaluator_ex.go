@@ -17,6 +17,13 @@ func evalTypeExpression(node *ast.TypeStatement, env *object.Environment) object
 	return nil
 }
 
+func evalTypeIdentifier(node *ast.TypeIdentifier, env *object.Environment) object.Object {
+	val := Eval(node.Variable, env)
+	env.Set(node.Value, val)
+
+	return &object.Struct{}
+}
+
 func evalObjectBlockStatement(block *ast.ObjectBlockStatement, env *object.Environment) object.Object {
 	var result object.Object
 

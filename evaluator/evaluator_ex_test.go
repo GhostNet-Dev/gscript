@@ -6,6 +6,62 @@ import (
 	"github.com/GhostNet-Dev/glambda/object"
 )
 
+func TestNewBuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`int("1")`, 1},
+		{`string(1)`, "1"},
+	}
+	for i, tt := range tests {
+		evaluated := testEval(tt.input)
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(expected), i)
+		case string:
+			errObj, ok := evaluated.(*object.String)
+			if !ok {
+				t.Errorf("object is Error. got=%T (%+v)", evaluated, evaluated)
+				continue
+			}
+			if errObj.Value != expected {
+				t.Errorf("wrong Result. expected=%q, got=%q", expected, errObj.Value)
+			}
+		}
+	}
+}
+
+func TestHashVariable(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`let a = {"foo": 5};a["foo"];`, 5},
+		{`{"foo": 5}["foo"]`, 5},
+		{"let myArray = [1, 2, 3];myArray[2];", 3},
+	}
+	for i, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer), i)
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
+func TestUseStruct(t *testing.T) {
+	input := `type a struct {}
+	a b;`
+	evaluated := testEval(input)
+	_, ok := evaluated.(*object.Identifier)
+	if !ok {
+		t.Fatalf("Eval didn't return Identifier. got=%T (%+v)", evaluated, evaluated)
+	}
+}
+
 func TestTypeStruct(t *testing.T) {
 	input := `type a struct
 	{
@@ -14,7 +70,7 @@ func TestTypeStruct(t *testing.T) {
 	evaluated := testEval(input)
 	_, ok := evaluated.(*object.Struct)
 	if !ok {
-		t.Fatalf("Eval didn't return Hash. got=%T (%+v)", evaluated, evaluated)
+		t.Fatalf("Eval didn't return Struct. got=%T (%+v)", evaluated, evaluated)
 	}
 }
 

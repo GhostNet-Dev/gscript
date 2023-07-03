@@ -123,8 +123,8 @@ func TestUseStructStatements(t *testing.T) {
 	if program == nil {
 		t.Fatal("ParseProgram() returned nil")
 	}
-	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contain 3 statements. got=%d",
+	if len(program.Statements) != 2 {
+		t.Fatalf("program.Statements does not contain 2 statements. got=%d",
 			len(program.Statements))
 	}
 }
