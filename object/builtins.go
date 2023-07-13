@@ -10,7 +10,7 @@ var Builtins = []struct {
 	Builtin *Builtin
 }{
 	{"len", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -25,7 +25,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"puts", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			for _, arg := range args {
 				fmt.Println(arg.Inspect())
 			}
@@ -33,7 +33,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"first", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -48,7 +48,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"last", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -64,7 +64,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"rest", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -82,7 +82,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"push", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 2 {
 				return NewError("wrong number of arguments. got=%d, want=2", len(args))
 			}
@@ -98,7 +98,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"int", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -113,7 +113,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"string", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}

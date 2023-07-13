@@ -79,7 +79,7 @@ func (o *Array) Inspect() string {
 	return out.String()
 }
 
-type BuiltinFunction func(args ...Object) Object
+type BuiltinFunction func(context interface{}, args ...Object) Object
 type Builtin struct {
 	Fn BuiltinFunction
 }
