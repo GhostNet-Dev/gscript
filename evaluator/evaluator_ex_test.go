@@ -56,7 +56,7 @@ func TestUseStruct(t *testing.T) {
 	input := `type a struct {}
 	a b;`
 	evaluated := testEval(input)
-	_, ok := evaluated.(*object.Identifier)
+	_, ok := evaluated.(*object.Struct)
 	if !ok {
 		t.Fatalf("Eval didn't return Identifier. got=%T (%+v)", evaluated, evaluated)
 	}
