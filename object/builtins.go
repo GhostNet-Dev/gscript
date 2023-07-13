@@ -2,6 +2,7 @@ package object
 
 import (
 	"fmt"
+	"strconv"
 )
 
 var Builtins = []struct {
@@ -9,7 +10,7 @@ var Builtins = []struct {
 	Builtin *Builtin
 }{
 	{"len", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -24,7 +25,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"puts", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			for _, arg := range args {
 				fmt.Println(arg.Inspect())
 			}
@@ -32,7 +33,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"first", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -47,7 +48,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"last", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -63,7 +64,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"rest", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 1 {
 				return NewError("wrong number of arguments. got=%d, want=1", len(args))
 			}
@@ -81,7 +82,7 @@ var Builtins = []struct {
 		}},
 	},
 	{"push", &Builtin{
-		Fn: func(args ...Object) Object {
+		Fn: func(env interface{}, args ...Object) Object {
 			if len(args) != 2 {
 				return NewError("wrong number of arguments. got=%d, want=2", len(args))
 			}
@@ -96,6 +97,34 @@ var Builtins = []struct {
 			return &Array{Elements: newElements}
 		}},
 	},
+	{"int", &Builtin{
+		Fn: func(env interface{}, args ...Object) Object {
+			if len(args) != 1 {
+				return NewError("wrong number of arguments. got=%d, want=1", len(args))
+			}
+			if args[0].Type() != STRING_OBJ {
+				return NewError("argument to 'int' must be STRING, got %s", args[0].Type())
+			}
+			str := args[0].(*String)
+			if i, err := strconv.Atoi(str.Value); err == nil {
+				return &Integer{Value: int64(i)}
+			}
+			return NewError("Cannot Convert to int from string(%s)", str)
+		}},
+	},
+	{"string", &Builtin{
+		Fn: func(env interface{}, args ...Object) Object {
+			if len(args) != 1 {
+				return NewError("wrong number of arguments. got=%d, want=1", len(args))
+			}
+			if args[0].Type() != INTEGER_OBJ {
+				return NewError("argument to 'string' must be Integer, got %s", args[0].Type())
+			}
+			i := args[0].(*Integer)
+			str := fmt.Sprint(i.Value)
+			return &String{Value: str}
+		}},
+	},
 }
 
 func GetBuiltinByName(name string) *Builtin {
@@ -108,7 +137,7 @@ func GetBuiltinByName(name string) *Builtin {
 }
 
 func SetBuiltinFunction(name string, builtIn *Builtin) *Builtin {
-	newBuiltin :=  struct {
+	newBuiltin := struct {
 		Name    string
 		Builtin *Builtin
 	}{

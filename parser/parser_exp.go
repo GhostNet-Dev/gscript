@@ -299,6 +299,13 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 }
 
 func (p *Parser) parseIdentifier() ast.Expression {
+	if p.peekTokenIs(gtoken.IDENT) {
+		typeIdent := &ast.TypeIdentifier{Token: p.curToken, Value: p.curToken.Literal}
+
+		p.NextToken()
+		typeIdent.Variable = p.parseExpression(LOWEST).(*ast.Identifier)
+		return typeIdent
+	}
 	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 

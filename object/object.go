@@ -79,7 +79,7 @@ func (o *Array) Inspect() string {
 	return out.String()
 }
 
-type BuiltinFunction func(args ...Object) Object
+type BuiltinFunction func(context interface{}, args ...Object) Object
 type Builtin struct {
 	Fn BuiltinFunction
 }
@@ -165,9 +165,11 @@ func (o *Identifier) Inspect() string  { return fmt.Sprintf("%d", o.Value) }
 func (o *Identifier) Type() ObjectType { return IDENTFIER_OBJ }
 
 type Struct struct {
-	Name  string
-	Value Object
-	Body  *ast.BlockStatement
+	TypeName string
+	Name     string
+	Value    Object
+	Body     *ast.BlockStatement
+	Env      *Environment
 }
 
 func (o *Struct) Inspect() string  { return fmt.Sprintf("%d", o.Value) }

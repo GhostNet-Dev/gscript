@@ -47,6 +47,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		ident := &object.Identifier{Name: node.Name.Value, Value: val}
 		env.Set(node.Name.Value, ident)
+	case *ast.TypeIdentifier:
+		return evalTypeIdentifier(node, env)
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.IntegerLiteral:
@@ -101,7 +103,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if len(args) == 1 && isError(args[0]) {
 			return args[0]
 		}
-		return applyFunction(function, args)
+		return applyFunction(function, args, env)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {
@@ -190,7 +192,7 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 	return pair.Value
 }
 
-func applyFunction(fn object.Object, args []object.Object) object.Object {
+func applyFunction(fn object.Object, args []object.Object, env *object.Environment) object.Object {
 	if ident, ok := fn.(*object.Identifier); ok {
 		fn = ident.Value
 	}
@@ -200,7 +202,7 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 		evaluated := Eval(fn.Body, extendedEnv)
 		return unwrapReturnValue(evaluated)
 	case *object.Builtin:
-		if result := fn.Fn(args...); result != nil {
+		if result := fn.Fn(env, args...); result != nil {
 			return result
 		}
 		return NULL
