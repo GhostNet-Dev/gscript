@@ -1,9 +1,10 @@
 package object
 
 type Environment struct {
-	store     map[string]Object
-	typeStore map[string]*Environment
-	outer     *Environment
+	store        map[string]Object
+	typeStore    map[string]*Environment
+	outer        *Environment
+	ProgramParam interface{}
 }
 
 func NewEnclosedEnvironment(outer *Environment) *Environment {
