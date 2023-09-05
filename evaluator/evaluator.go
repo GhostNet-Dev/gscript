@@ -34,6 +34,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalProgram(node, env)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
+
 	// Type Define
 	case *ast.TypeStatement:
 		return evalTypeExpression(node, env)
@@ -75,6 +76,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIndexExpression(left, index)
 	case *ast.HashLiteral:
 		return evalHashLiteral(node, env)
+
 	// Block
 	case *ast.ObjectBlockStatement:
 		return evalObjectBlockStatement(node, env)
@@ -84,6 +86,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return evalIfExpression(node, env)
 	case *ast.ForExpression:
 		return evalForExpression(node, env)
+
+	//Function Expressiont
 	case *ast.ReturnStatement:
 		val := Eval(node.ReturnValue, env)
 		if isError(val) {
@@ -104,6 +108,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args, env)
+
+	// Prefix / Infix
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {

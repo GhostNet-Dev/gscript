@@ -55,7 +55,8 @@ const (
 	IMPORT   = "IMPORT"
 	PACKAGE  = "PACKAGE"
 	TYPE     = "TYPE"
-	STRUCT    = "STRUCT"
+	STRUCT   = "STRUCT"
+	NULL     = "NULL"
 )
 
 var keywords = map[string]TokenType{
@@ -72,7 +73,8 @@ var keywords = map[string]TokenType{
 	"import":  IMPORT,
 	"package": PACKAGE,
 	"type":    TYPE,
-	"struct":    STRUCT,
+	"struct":  STRUCT,
+	"null":    NULL,
 }
 
 func NewToken(tokenType TokenType, ch byte, line int) Token {
