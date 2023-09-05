@@ -6,6 +6,18 @@ import (
 	"github.com/GhostNet-Dev/glambda/object"
 )
 
+func TestNull(t *testing.T) {
+	input := `let a = null;
+	if(a == null) return true;
+	return false;
+	`
+	evaluated := testEval(input)
+	_, ok := evaluated.(*object.Boolean)
+	if !ok {
+		t.Fatalf("Eval didn't return Identifier. got=%T (%+v)", evaluated, evaluated)
+	}
+}
+
 func TestNewBuiltinFunctions(t *testing.T) {
 	tests := []struct {
 		input    string
