@@ -8,7 +8,9 @@ import (
 
 func TestNull(t *testing.T) {
 	input := `let a = null;
-	if(a == null) return true;
+	if(a == null) { 
+		return true;
+	}
 	return false;
 	`
 	evaluated := testEval(input)

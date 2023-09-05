@@ -50,6 +50,7 @@ func (p *Parser) initExpression() {
 	p.registerPrefix(gtoken.MINUS, p.parsePrefixExpression)
 	p.registerPrefix(gtoken.TRUE, p.parseBoolean)
 	p.registerPrefix(gtoken.FALSE, p.parseBoolean)
+	p.registerPrefix(gtoken.NULL, p.parseNull)
 	p.registerPrefix(gtoken.LPAREN, p.parseGroupedExpresion)
 	p.registerPrefix(gtoken.IF, p.parseIfExpresion)
 	p.registerPrefix(gtoken.FOR, p.parseForExpresion)
@@ -276,6 +277,9 @@ func (p *Parser) parseBoolean() ast.Expression {
 	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(gtoken.TRUE)}
 }
 
+func (p *Parser) parseNull() ast.Expression {
+	return &ast.Null{Token: p.curToken, Value: "null"}
+}
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	expression := &ast.PrefixExpression{
 		Token:    p.curToken,
