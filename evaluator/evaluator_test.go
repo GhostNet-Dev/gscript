@@ -416,7 +416,7 @@ func testEval(input string) object.Object {
 	l := lexer.NewLexer(input)
 	p := parser.NewParser(l)
 	program := p.ParseProgram()
-	env := object.NewEnvironment()
+	env := object.NewEnvironment(nil)
 	return Eval(program, env)
 }
 

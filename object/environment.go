@@ -8,15 +8,15 @@ type Environment struct {
 }
 
 func NewEnclosedEnvironment(outer *Environment) *Environment {
-	env := NewEnvironment()
+	env := NewEnvironment(outer.ProgramParam)
 	env.outer = outer
 	return env
 }
 
-func NewEnvironment() *Environment {
+func NewEnvironment(programParam interface{}) *Environment {
 	s := make(map[string]Object)
 	t := make(map[string]*Environment)
-	return &Environment{store: s, typeStore: t, outer: nil}
+	return &Environment{store: s, typeStore: t, outer: nil, ProgramParam: programParam}
 }
 
 func (e *Environment) Get(name string) (Object, bool) {
@@ -33,7 +33,7 @@ func (e *Environment) Set(name string, val Object) Object {
 }
 
 func (e *Environment) TypeDefine(name string) *Environment {
-	newEnv := NewEnvironment()
+	newEnv := NewEnvironment(e.ProgramParam)
 	e.typeStore[name] = newEnv
 	return newEnv
 }
