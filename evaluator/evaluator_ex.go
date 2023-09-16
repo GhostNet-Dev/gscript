@@ -1,8 +1,8 @@
 package evaluator
 
 import (
-	"github.com/GhostNet-Dev/glambda/ast"
-	"github.com/GhostNet-Dev/glambda/object"
+	"github.com/GhostNet-Dev/gscript/ast"
+	"github.com/GhostNet-Dev/gscript/object"
 )
 
 func evalTypeExpression(node *ast.TypeStatement, env *object.Environment) object.Object {

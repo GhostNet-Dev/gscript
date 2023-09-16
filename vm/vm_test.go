@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/GhostNet-Dev/glambda/ast"
-	"github.com/GhostNet-Dev/glambda/compiler"
-	"github.com/GhostNet-Dev/glambda/lexer"
-	"github.com/GhostNet-Dev/glambda/object"
-	"github.com/GhostNet-Dev/glambda/parser"
+	"github.com/GhostNet-Dev/gscript/ast"
+	"github.com/GhostNet-Dev/gscript/compiler"
+	"github.com/GhostNet-Dev/gscript/lexer"
+	"github.com/GhostNet-Dev/gscript/object"
+	"github.com/GhostNet-Dev/gscript/parser"
 )
 
 type vmTestCase struct {

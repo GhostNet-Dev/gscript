@@ -3,8 +3,8 @@ package parser
 import (
 	"testing"
 
-	"github.com/GhostNet-Dev/glambda/ast"
-	"github.com/GhostNet-Dev/glambda/lexer"
+	"github.com/GhostNet-Dev/gscript/ast"
+	"github.com/GhostNet-Dev/gscript/lexer"
 )
 
 func TestReturnStatements(t *testing.T) {

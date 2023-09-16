@@ -3,9 +3,9 @@ package parser
 import (
 	"fmt"
 
-	"github.com/GhostNet-Dev/glambda/ast"
-	"github.com/GhostNet-Dev/glambda/gtoken"
-	"github.com/GhostNet-Dev/glambda/lexer"
+	"github.com/GhostNet-Dev/gscript/ast"
+	"github.com/GhostNet-Dev/gscript/gtoken"
+	"github.com/GhostNet-Dev/gscript/lexer"
 )
 
 type Parser struct {

@@ -1,8 +1,8 @@
 package vm
 
 import (
-	"github.com/GhostNet-Dev/glambda/code"
-	"github.com/GhostNet-Dev/glambda/object"
+	"github.com/GhostNet-Dev/gscript/code"
+	"github.com/GhostNet-Dev/gscript/object"
 )
 
 type Frame struct {

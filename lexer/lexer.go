@@ -1,6 +1,6 @@
 package lexer
 
-import "github.com/GhostNet-Dev/glambda/gtoken"
+import "github.com/GhostNet-Dev/gscript/gtoken"
 
 type Lexer struct {
 	input            string

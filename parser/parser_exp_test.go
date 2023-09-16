@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/GhostNet-Dev/glambda/ast"
-	"github.com/GhostNet-Dev/glambda/lexer"
+	"github.com/GhostNet-Dev/gscript/ast"
+	"github.com/GhostNet-Dev/gscript/lexer"
 )
 
 func TestFunctionLiteralWithName(t *testing.T) {

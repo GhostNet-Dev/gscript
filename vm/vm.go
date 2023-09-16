@@ -3,9 +3,9 @@ package vm
 import (
 	"fmt"
 
-	"github.com/GhostNet-Dev/glambda/code"
-	"github.com/GhostNet-Dev/glambda/compiler"
-	"github.com/GhostNet-Dev/glambda/object"
+	"github.com/GhostNet-Dev/gscript/code"
+	"github.com/GhostNet-Dev/gscript/compiler"
+	"github.com/GhostNet-Dev/gscript/object"
 )
 
 const (

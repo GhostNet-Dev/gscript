@@ -3,7 +3,7 @@ package evaluator
 import (
 	"testing"
 
-	"github.com/GhostNet-Dev/glambda/object"
+	"github.com/GhostNet-Dev/gscript/object"
 )
 
 func TestNull(t *testing.T) {

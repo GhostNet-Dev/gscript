@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/GhostNet-Dev/glambda/gtoken"
+	"github.com/GhostNet-Dev/gscript/gtoken"
 )
 
 type Expression interface {

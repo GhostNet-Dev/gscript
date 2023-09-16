@@ -6,8 +6,8 @@ import (
 	"os/user"
 	"strings"
 
-	"github.com/GhostNet-Dev/glambda/internal/gconfig"
-	"github.com/GhostNet-Dev/glambda/repl"
+	"github.com/GhostNet-Dev/gscript/internal/gconfig"
+	"github.com/GhostNet-Dev/gscript/repl"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -20,7 +20,7 @@ var (
 // RootCmd root command binding
 func NewRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "glambda",
+		Use:   "gscript",
 		Short: "PERL (read, Eval, Print, Loop)",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well

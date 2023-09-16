@@ -1,4 +1,4 @@
-BINARY_CLI_NAME	:= glambda
+BINARY_CLI_NAME	:= gscript
 
 APP_BIN_CLI_PATH := $(CURDIR)/bin/$(BINARY_CLI_NAME)
 

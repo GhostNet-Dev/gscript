@@ -3,8 +3,8 @@ package evaluator
 import (
 	"fmt"
 
-	"github.com/GhostNet-Dev/glambda/ast"
-	"github.com/GhostNet-Dev/glambda/object"
+	"github.com/GhostNet-Dev/gscript/ast"
+	"github.com/GhostNet-Dev/gscript/object"
 )
 
 var (

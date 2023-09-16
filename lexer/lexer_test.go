@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/GhostNet-Dev/glambda/gtoken"
+	"github.com/GhostNet-Dev/gscript/gtoken"
 )
 
 type ExpectedData struct {

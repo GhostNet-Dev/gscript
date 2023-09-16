@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/GhostNet-Dev/glambda/compiler"
-	"github.com/GhostNet-Dev/glambda/evaluator"
-	"github.com/GhostNet-Dev/glambda/lexer"
-	"github.com/GhostNet-Dev/glambda/object"
-	"github.com/GhostNet-Dev/glambda/parser"
-	"github.com/GhostNet-Dev/glambda/vm"
+	"github.com/GhostNet-Dev/gscript/compiler"
+	"github.com/GhostNet-Dev/gscript/evaluator"
+	"github.com/GhostNet-Dev/gscript/lexer"
+	"github.com/GhostNet-Dev/gscript/object"
+	"github.com/GhostNet-Dev/gscript/parser"
+	"github.com/GhostNet-Dev/gscript/vm"
 )
 
 const PROMPT = ">> "

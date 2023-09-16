@@ -3,7 +3,7 @@ package ast
 import (
 	"testing"
 
-	"github.com/GhostNet-Dev/glambda/gtoken"
+	"github.com/GhostNet-Dev/gscript/gtoken"
 )
 
 func TestString(t *testing.T) {

@@ -1,7 +1,7 @@
 package evaluator
 
 import (
-	"github.com/GhostNet-Dev/glambda/object"
+	"github.com/GhostNet-Dev/gscript/object"
 )
 
 var builtins = map[string]*object.Builtin{

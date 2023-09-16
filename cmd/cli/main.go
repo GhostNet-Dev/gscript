@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	cmd "github.com/GhostNet-Dev/glambda/cmd/cli/commands"
+	cmd "github.com/GhostNet-Dev/gscript/cmd/cli/commands"
 )
 
 func init() {
